@@ -1,0 +1,12 @@
+usage: rs
+ -c,--country <arg>   filter which country
+ -f,--format <arg>    output format, cidr or mask
+ -h,--help            display help
+ -o,--online          online mode
+ -r,--reverse         output reverse (negetive) route
+
+eg.
+  mvn scala:run '-DaddArgs=-c|JP|-f|cidr'
+
+Download NIC data:
+  mvn scala:run -Dlauncher=download

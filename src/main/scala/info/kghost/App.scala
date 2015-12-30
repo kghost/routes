@@ -3,6 +3,9 @@ package info.kghost
 import java.math.BigInteger
 import java.net.InetAddress
 import java.io.InputStream
+import org.apache.commons.cli.Options
+import org.apache.commons.cli.DefaultParser
+import org.apache.commons.cli.HelpFormatter
 
 /**
  * @author ${user.name}
@@ -135,30 +138,59 @@ object App {
   val row = "[^|]*\\|([A-Z]*)\\|ipv4\\|([0-9.]*)\\|([0-9]*)\\|[^|]*\\|(?:(?:allocated)|(?:assigned)).*".r
 
   def main(args: Array[String]) {
-    val data = Data.data1
-    val exc = Array(
-      buildTree("127.0.0.0/8"),
-      buildTree("10.0.0.0/8"),
-      buildTree("100.64.0.0/10"),
-      buildTree("169.254.0.0/16"),
-      buildTree("172.16.0.0/12"),
-      buildTree("192.168.0.0/16"),
-      buildTree("224.0.0.0/4"),
-      buildTree("240.0.0.0/4")).reduce(union)
-    val (include, exclude) = data.foldLeft(null: BinaryTree, exc) {
-      case ((include, exclude), line) => line match {
-        case row(loc, ip, count) => {
-          val longIp = ipToLong(ip)
-          val tree = buildTree(longIp, longIp + java.lang.Integer.parseInt(count) - 1)
-          if (loc != "CN")
-            (include, union(exclude, tree))
-          else
-            (union(include, tree), exclude)
-        }
-        case _ => (include, exclude)
+    val options = new Options();
+    options.addOption("h", "help", false, "display help");
+    options.addOption("o", "online", false, "online mode");
+    options.addOption("c", "country", true, "filter which country");
+    options.addOption("f", "format", true, "output format, cidr or mask");
+    options.addOption("r", "reverse", false, "output reverse (negetive) route");
+
+    val parser = new DefaultParser();
+    val cmd = parser.parse(options, args);
+
+    if (cmd.hasOption("h")) {
+      val formatter = new HelpFormatter();
+      formatter.printHelp("rs", options);
+    } else {
+      val data = if (cmd.hasOption("o"))
+        Data.data1
+      else
+        Data.data2
+
+      val country = cmd.getOptionValue("c", "CN")
+      val format = cmd.getOptionValue("f", "mask") match {
+        case "cidr" => BinaryTree.cidr _
+        case "mask" => BinaryTree.mask _
       }
+      val reverse = cmd.hasOption("r")
+
+      val exc = Array(
+        buildTree("127.0.0.0/8"),
+        buildTree("10.0.0.0/8"),
+        buildTree("100.64.0.0/10"),
+        buildTree("169.254.0.0/16"),
+        buildTree("172.16.0.0/12"),
+        buildTree("192.168.0.0/16"),
+        buildTree("224.0.0.0/4"),
+        buildTree("240.0.0.0/4")).reduce(union)
+      val (include, exclude) = data.foldLeft(null: BinaryTree, exc) {
+        case ((include, exclude), line) => line match {
+          case row(loc, ip, count) => {
+            val longIp = ipToLong(ip)
+            val tree = buildTree(longIp, longIp + java.lang.Integer.parseInt(count) - 1)
+            if (loc == country)
+              (union(include, tree), exclude)
+            else
+              (include, union(exclude, tree))
+          }
+          case _ => (include, exclude)
+        }
+      }
+      val result = if (!reverse)
+        optimize(include, exclude)
+      else
+        optimize(exclude, include)
+      result.print(format)
     }
-    val result = optimize(include, exclude)
-    result.print(BinaryTree.mask)
   }
 }
