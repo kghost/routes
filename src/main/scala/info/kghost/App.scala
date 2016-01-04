@@ -2,7 +2,6 @@ package info.kghost
 
 import java.math.BigInteger
 import java.net.InetAddress
-import java.io.InputStream
 import org.apache.commons.cli.Options
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.HelpFormatter
@@ -140,7 +139,6 @@ object App {
   def main(args: Array[String]) {
     val options = new Options();
     options.addOption("h", "help", false, "display help");
-    options.addOption("o", "online", false, "online mode");
     options.addOption("c", "country", true, "filter which country");
     options.addOption("f", "format", true, "output format, cidr or mask");
     options.addOption("r", "reverse", false, "output reverse (negetive) route");
@@ -152,10 +150,7 @@ object App {
       val formatter = new HelpFormatter();
       formatter.printHelp("rs", options);
     } else {
-      val data = if (cmd.hasOption("o"))
-        Data.data1
-      else
-        Data.data2
+      val data = Data.data
 
       val country = cmd.getOptionValue("c", "CN")
       val format = cmd.getOptionValue("f", "mask") match {
