@@ -173,7 +173,7 @@ object App {
           case row(loc, ip, count) => {
             val longIp = ipToLong(ip)
             val tree = buildTree(longIp, longIp + java.lang.Integer.parseInt(count) - 1)
-            if (loc == country)
+            if ((loc == country) ^ reverse)
               (union(include, tree), exclude)
             else
               (include, union(exclude, tree))
@@ -181,11 +181,7 @@ object App {
           case _ => (include, exclude)
         }
       }
-      val result = if (!reverse)
-        optimize(include, exclude)
-      else
-        optimize(exclude, include)
-      result.print(format)
+      optimize(include, exclude).print(format)
     }
   }
 }
