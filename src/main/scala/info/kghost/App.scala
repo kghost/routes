@@ -160,6 +160,7 @@ object App {
       val reverse = cmd.hasOption("r")
 
       val exc = Array(
+        buildTree("103.28.54.0/23"),
         buildTree("127.0.0.0/8"),
         buildTree("10.0.0.0/8"),
         buildTree("100.64.0.0/10"),
