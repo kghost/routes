@@ -1,6 +1,7 @@
 mvn exec:java -Dexec.mainClass=info.kghost.App -Dexec.args="-c CN -r"
 
 usage: rs
+ -6,--ipv6            process ipv6 prefixes
  -c,--country <arg>   filter which country
  -f,--format <arg>    output format, cidr or mask
  -h,--help            display help
